@@ -19,7 +19,7 @@ npm run build         # tsc → dist/
 npm start             # run server (fetches from code.claude.com)
 ```
 
-All commands must run from this directory (`packages/mcp-servers/claude-code-docs/`).
+All commands must run from the repository root.
 
 ## Architecture
 
@@ -112,7 +112,7 @@ Tests mirror source 1:1 (`src/foo.ts` → `tests/foo.test.ts`). Additional test 
 
 ## Gotchas
 
-- **Working directory**: All commands must run from this package directory, not the monorepo root.
+- **Working directory**: All commands must run from the repository root.
 - **Version bump policy**:
   - Changing canary thresholds or adding/removing canary checks → bump `CANARY_VERSION` in `index-cache.ts`
   - Changing diagnostic computation (not thresholds) → bump `INGESTION_VERSION` in `index-cache.ts`
@@ -140,5 +140,5 @@ The MCP server is registered to start via `scripts/run-mcp.sh`, a wrapper that r
 **Registration:** `claude mcp get claude-code-docs` shows the current config. To re-register after moving the repo:
 ```bash
 claude mcp remove claude-code-docs -s user
-claude mcp add-json --scope user claude-code-docs '{"type":"stdio","command":"<repo>/packages/mcp-servers/claude-code-docs/scripts/run-mcp.sh","env":{"DOCS_PATH":"<repo>/docs/extension-reference"}}'
+claude mcp add-json --scope user claude-code-docs '{"type":"stdio","command":"<repo>/scripts/run-mcp.sh"}'
 ```
