@@ -8,7 +8,7 @@ BM25-based search server for Claude Code documentation. Fetches docs from `https
 |-----------|------|----------|---------|-------------|
 | `query` | string | yes | — | Max 500 chars, trimmed |
 | `limit` | integer | no | `5` | 1–20 |
-| `category` | string | no | — | One of 29 categories or 6 aliases (see `categories.ts`); `'uncategorized'` is the fallback for unrecognized URL slugs |
+| `category` | string | no | — | One of 30 categories or 6 aliases (see `categories.ts`); `'uncategorized'` is the fallback for unrecognized URL slugs |
 
 ## Commands
 
@@ -44,7 +44,7 @@ loadFromOfficial (fetch + parse docs)
 | `bm25.ts` | BM25 scoring, heading boost, snippet extraction |
 | `index-cache.ts` | Serialization, version constants, Zod schemas |
 | `tokenizer.ts` | Porter stemmer + CamelCase splitting |
-| `categories.ts` | 29 canonical categories, URL-to-category mapping (exact segment match, then longest hyphen-bounded prefix — see `resolveSegmentCategory`), 6 aliases (`subagents`→`agents`, `sub-agents`→`agents`, `slash-commands`→`commands`, `claude-md`→`memory`, `configuration`→`config`, `gateway`→`gateways`) |
+| `categories.ts` | 30 canonical categories, URL-to-category mapping (exact segment match, then longest hyphen-bounded prefix — see `resolveSegmentCategory`), 6 aliases (`subagents`→`agents`, `sub-agents`→`agents`, `slash-commands`→`commands`, `claude-md`→`memory`, `configuration`→`config`, `gateway`→`gateways`) |
 | `types.ts` | `Chunk`, `SearchResult`, `MarkdownFile`, `ParsedSection` interfaces |
 | `cache.ts` | Filesystem cache read/write for index persistence |
 | `parser.ts` | Parses `llms-full.txt` into `ParsedSection[]` via Source-line splitting |

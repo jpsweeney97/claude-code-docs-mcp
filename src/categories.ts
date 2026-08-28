@@ -2,7 +2,7 @@
 
 /**
  * Canonical list of all documentation categories.
- * These are the 29 categories used for categorizing all Claude Code docs.
+ * These are the 30 categories used for categorizing all Claude Code docs.
  */
 export const KNOWN_CATEGORIES = new Set([
   // Extension categories (10)
@@ -16,7 +16,7 @@ export const KNOWN_CATEGORIES = new Set([
   'channels',
   'settings',
   'memory',
-  // General categories (19)
+  // General categories (20)
   'overview',
   'getting-started',
   'cli',
@@ -25,6 +25,7 @@ export const KNOWN_CATEGORIES = new Set([
   'security',
   'providers',
   'gateways',
+  'environments',
   'ide',
   'ci-cd',
   'automation',
@@ -60,6 +61,7 @@ export const SECTION_TO_CATEGORY: Record<string, string> = {
   'channels-reference': 'channels',
   'settings': 'settings',
   'server-managed-settings': 'settings',
+  'managed-settings': 'settings',
   'memory': 'memory',
   'claude-md': 'memory',
   // General categories
@@ -95,6 +97,8 @@ export const SECTION_TO_CATEGORY: Record<string, string> = {
   'llm-gateway': 'gateways',
   'gateways': 'gateways',
   'claude-apps-gateway': 'gateways',
+  'cloud-environments': 'environments',
+  'self-hosted-environments': 'environments',
   'vs-code': 'ide',
   'jetbrains': 'ide',
   'devcontainer': 'ide',
@@ -163,6 +167,12 @@ export const SECTION_TO_CATEGORY: Record<string, string> = {
   'workflows': 'automation',
   'goal': 'automation',
   'prompt-caching': 'operations',
+  'claude-security': 'security',
+  'claude-tag': 'integrations',
+  'corporate-launcher': 'config',
+  'cross-session-messaging': 'interactive',
+  'accessibility': 'interactive',
+  'mobile': 'desktop',
 };
 
 /**

@@ -3,19 +3,20 @@ import { describe, it, expect } from 'vitest';
 import { KNOWN_CATEGORIES, SECTION_TO_CATEGORY, CATEGORY_ALIASES, resolveSegmentCategory } from '../src/categories.js';
 
 describe('KNOWN_CATEGORIES', () => {
-  it('contains all 29 canonical categories', () => {
+  it('contains all 30 canonical categories', () => {
     const expected = [
       // Extension categories (10)
       'hooks', 'skills', 'commands', 'agents', 'plugins',
       'plugin-marketplaces', 'mcp', 'channels', 'settings', 'memory',
-      // General categories (19)
+      // General categories (20)
       'overview', 'getting-started', 'cli', 'best-practices',
-      'interactive', 'security', 'providers', 'gateways', 'ide', 'ci-cd',
+      'interactive', 'security', 'providers', 'gateways', 'environments',
+      'ide', 'ci-cd',
       'automation', 'agent-sdk', 'desktop', 'integrations', 'config',
       'operations', 'troubleshooting', 'changelog', 'uncategorized',
     ];
 
-    expect(KNOWN_CATEGORIES.size).toBe(29);
+    expect(KNOWN_CATEGORIES.size).toBe(30);
     for (const cat of expected) {
       expect(KNOWN_CATEGORIES.has(cat)).toBe(true);
     }
@@ -135,6 +136,18 @@ describe('SECTION_TO_CATEGORY', () => {
     expect(SECTION_TO_CATEGORY['prompt-caching']).toBe('operations');
   });
 
+  it('maps segments added with the 2026-08 corpus growth', () => {
+    expect(SECTION_TO_CATEGORY['cloud-environments']).toBe('environments');
+    expect(SECTION_TO_CATEGORY['self-hosted-environments']).toBe('environments');
+    expect(SECTION_TO_CATEGORY['managed-settings']).toBe('settings');
+    expect(SECTION_TO_CATEGORY['claude-security']).toBe('security');
+    expect(SECTION_TO_CATEGORY['claude-tag']).toBe('integrations');
+    expect(SECTION_TO_CATEGORY['corporate-launcher']).toBe('config');
+    expect(SECTION_TO_CATEGORY['cross-session-messaging']).toBe('interactive');
+    expect(SECTION_TO_CATEGORY['accessibility']).toBe('interactive');
+    expect(SECTION_TO_CATEGORY['mobile']).toBe('desktop');
+  });
+
   it('all values target a known category', () => {
     for (const [segment, category] of Object.entries(SECTION_TO_CATEGORY)) {
       expect(
@@ -168,6 +181,10 @@ describe('resolveSegmentCategory', () => {
     expect(resolveSegmentCategory('mcp-quickstart')).toBe('mcp');
     expect(resolveSegmentCategory('security-guidance')).toBe('security');
     expect(resolveSegmentCategory('desktop-linux')).toBe('desktop');
+    // self-hosted-environments sub-pages (-quickstart, -deploy, -identity,
+    // -configuration, -reference, -testing) resolve via the parent key
+    expect(resolveSegmentCategory('self-hosted-environments-quickstart')).toBe('environments');
+    expect(resolveSegmentCategory('self-hosted-environments-deploy')).toBe('environments');
   });
 
   it('prefers the longest matching key', () => {
