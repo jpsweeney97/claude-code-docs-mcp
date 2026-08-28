@@ -165,14 +165,32 @@ export function search(
     ? Array.from(candidates).filter((idx) => index.chunks[idx].category === category)
     : Array.from(candidates);
 
-  return filteredCandidates
+  const scored = filteredCandidates
     .map((idx) => ({
       chunk: index.chunks[idx],
       score: bm25Score(queryTerms, index.chunks[idx], index) *
              headingBoostMultiplier(queryTerms, index.chunks[idx].headingTokens),
     }))
     .filter((r) => r.score > 0)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score);
+
+  // Page-diverse selection: each page's best chunk ranks ahead of any page's
+  // second chunk, so near-duplicate chunks of one page (overlap splits, giant
+  // split tables) cannot crowd every slot. Remaining slots backfill with the
+  // suppressed chunks in score order, so result count is unchanged.
+  const seenPages = new Set<string>();
+  const pageBest: typeof scored = [];
+  const overflow: typeof scored = [];
+  for (const r of scored) {
+    if (seenPages.has(r.chunk.source_file)) {
+      overflow.push(r);
+    } else {
+      seenPages.add(r.chunk.source_file);
+      pageBest.push(r);
+    }
+  }
+
+  return [...pageBest, ...overflow]
     .slice(0, limit)
     .map((r) => ({
       chunk_id: r.chunk.id,

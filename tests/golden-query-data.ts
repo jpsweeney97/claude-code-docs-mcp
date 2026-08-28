@@ -64,7 +64,11 @@ export const GOLDEN_QUERIES: GoldenQuery[] = [
   { query: 'changelog release version history fixes', expectedTopCategory: 'changelog' },
   // Morphological variant queries (stemming coverage)
   { query: 'configuring MCP servers', expectedTopCategory: 'mcp' },
-  { query: 'creating custom skills', expectedTopCategory: 'skills' },
+  // "creating custom skills" drifted 2026-08: "custom" became plugins-page
+  // vocabulary ("custom skills, agents, and hooks"), while the skills page's
+  // create section is headed "Create your first skill" and never says "custom".
+  // This wording keeps the gerund for stemming coverage and targets that page.
+  { query: 'creating your first skill', expectedTopCategory: 'skills' },
   // Live-only queries — doc areas added upstream 2026-06/07; no mock sections exist.
   { query: 'Claude apps gateway OIDC SSO identity provider', expectedTopCategory: 'gateways', liveOnly: true },
   { query: 'connect Claude Code to LLM gateway ANTHROPIC_BASE_URL', expectedTopCategory: 'gateways', liveOnly: true },

@@ -30,7 +30,7 @@ loadFromOfficial (fetch + parse docs)
   → parseSections (split by Source: markers into sections)
     → chunkFile (split sections into semantic chunks)
       → buildBM25Index (term frequencies, inverted index)
-        → search (BM25 scoring + heading boost + category filter)
+        → search (BM25 scoring + heading boost + category filter + page-diverse selection)
 ```
 
 ### Module Map
@@ -120,7 +120,7 @@ Tests mirror source 1:1 (`src/foo.ts` → `tests/foo.test.ts`). Additional test 
   - Adding an optional diagnostic field → update the Zod schema only, no version bump needed
   - Changing chunker, tokenizer, or parser → bump `CHUNKER_VERSION` or `TOKENIZER_VERSION` in `index-cache.ts`
   - Without the correct bump, stale cached indexes will be served.
-- **BM25 params are query-time only**: `k1`, `b`, `headingBoost`, `headingMinCoverage`, `snippetMaxLength` in `BM25_CONFIG` do not affect the stored index. No cache invalidation needed when changing them.
+- **BM25 params are query-time only**: `k1`, `b`, `headingBoost`, `headingMinCoverage`, `snippetMaxLength` in `BM25_CONFIG` do not affect the stored index. No cache invalidation needed when changing them. The same applies to result selection in `search()` (page-diverse ordering: each page's best chunk ranks ahead of any page's second chunk, remaining slots backfill by score) — it runs at query time on the stored index.
 - **Zod strips unknown keys by default**: When adding fields to serialized structures, update both the TypeScript interface and the Zod schema in `index-cache.ts`.
 - **Unsafe mode is an escape hatch, not multi-corpus support**: In `unsafe` mode, fallback-segment delta and relative-drift canary checks are disabled. The server accepts any HTTPS source URL but cannot verify corpus authenticity against expected Claude Code doc structure. Use only for local testing or private mirrors. A small mirror (under 40 sections) cannot bootstrap from a fresh fetch — the fixed `CACHE_WRITE_MIN_SECTIONS=40` content-write guard rejects it before the canary's lower unsafe floor applies; seed a content cache first.
 - **Provenance refresh triggers a full rebuild**: When `DOCS_TRUST_MODE` or `DOCS_URL` changes between runs, the cached index is invalidated even if all version constants match — the policy change is a cache miss by design.
