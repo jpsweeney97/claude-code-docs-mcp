@@ -44,7 +44,7 @@ loadFromOfficial (fetch + parse docs)
 | `bm25.ts` | BM25 scoring, heading boost, snippet extraction |
 | `index-cache.ts` | Serialization, version constants, Zod schemas |
 | `tokenizer.ts` | Porter stemmer + CamelCase splitting |
-| `categories.ts` | 30 canonical categories, URL-to-category mapping (exact segment match, then longest hyphen-bounded prefix — see `resolveSegmentCategory`), 6 aliases (`subagents`→`agents`, `sub-agents`→`agents`, `slash-commands`→`commands`, `claude-md`→`memory`, `configuration`→`config`, `gateway`→`gateways`) |
+| `categories.ts` | 30 canonical categories, URL-to-category mapping (full-path keys in `PATH_TO_CATEGORY` first, then the first URL segment that maps by exact segment match or longest hyphen-bounded prefix — see `resolvePathCategory` and `resolveSegmentCategory`), 6 aliases (`subagents`→`agents`, `sub-agents`→`agents`, `slash-commands`→`commands`, `claude-md`→`memory`, `configuration`→`config`, `gateway`→`gateways`) |
 | `types.ts` | `Chunk`, `SearchResult`, `MarkdownFile`, `ParsedSection` interfaces |
 | `cache.ts` | Filesystem cache read/write for index persistence |
 | `parser.ts` | Parses `llms-full.txt` into `ParsedSection[]` via Source-line splitting |

@@ -1,6 +1,13 @@
 // tests/categories.test.ts
 import { describe, it, expect } from 'vitest';
-import { KNOWN_CATEGORIES, SECTION_TO_CATEGORY, CATEGORY_ALIASES, resolveSegmentCategory } from '../src/categories.js';
+import {
+  KNOWN_CATEGORIES,
+  SECTION_TO_CATEGORY,
+  PATH_TO_CATEGORY,
+  CATEGORY_ALIASES,
+  resolveSegmentCategory,
+  resolvePathCategory,
+} from '../src/categories.js';
 
 describe('KNOWN_CATEGORIES', () => {
   it('contains all 30 canonical categories', () => {
@@ -148,6 +155,11 @@ describe('SECTION_TO_CATEGORY', () => {
     expect(SECTION_TO_CATEGORY['mobile']).toBe('desktop');
   });
 
+  it('maps segments added with the 2026-09 corpus growth', () => {
+    expect(SECTION_TO_CATEGORY['plugin-evals']).toBe('plugins');
+    expect(SECTION_TO_CATEGORY['claude-projects']).toBe('desktop');
+  });
+
   it('all values target a known category', () => {
     for (const [segment, category] of Object.entries(SECTION_TO_CATEGORY)) {
       expect(
@@ -199,6 +211,49 @@ describe('resolveSegmentCategory', () => {
     expect(resolveSegmentCategory('nonexistent-page')).toBe(null);
     expect(resolveSegmentCategory('pluginsomething')).toBe(null);
     expect(resolveSegmentCategory('constructor')).toBe(null);
+  });
+});
+
+describe('PATH_TO_CATEGORY', () => {
+  it('maps the marketplace pages of the 2026-09 plugins restructure', () => {
+    expect(PATH_TO_CATEGORY['plugins/create-marketplace']).toBe('plugin-marketplaces');
+    expect(PATH_TO_CATEGORY['plugins/host-marketplace']).toBe('plugin-marketplaces');
+    expect(PATH_TO_CATEGORY['plugins/marketplace-reference']).toBe('plugin-marketplaces');
+  });
+
+  it('all values target a known category', () => {
+    for (const [path, category] of Object.entries(PATH_TO_CATEGORY)) {
+      expect(
+        KNOWN_CATEGORIES.has(category),
+        `path '${path}' maps to unknown category '${category}'`,
+      ).toBe(true);
+    }
+  });
+});
+
+describe('resolvePathCategory', () => {
+  it('prefers a full-path key over the first segment', () => {
+    expect(resolvePathCategory(['plugins', 'create-marketplace'])).toBe('plugin-marketplaces');
+    expect(resolvePathCategory(['plugins', 'marketplace-reference'])).toBe('plugin-marketplaces');
+  });
+
+  it('falls back to the first mapped segment for other nested pages', () => {
+    expect(resolvePathCategory(['plugins', 'install'])).toBe('plugins');
+    expect(resolvePathCategory(['plugins', 'mods', 'overview'])).toBe('plugins');
+    // First segment wins, so SDK sub-pages named after a feature stay in agent-sdk
+    expect(resolvePathCategory(['agent-sdk', 'hooks'])).toBe('agent-sdk');
+    expect(resolvePathCategory(['agent-sdk', 'skills'])).toBe('agent-sdk');
+  });
+
+  it('resolves single-segment pages through resolveSegmentCategory', () => {
+    expect(resolvePathCategory(['hooks'])).toBe('hooks');
+    expect(resolvePathCategory(['llm-gateway-connect'])).toBe('gateways');
+  });
+
+  it('returns null when nothing maps', () => {
+    expect(resolvePathCategory([])).toBe(null);
+    expect(resolvePathCategory(['nonexistent-page'])).toBe(null);
+    expect(resolvePathCategory(['constructor'])).toBe(null);
   });
 });
 

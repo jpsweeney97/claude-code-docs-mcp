@@ -177,6 +177,14 @@ describe('deriveCategory', () => {
     expect(deriveCategory('https://code.claude.com/docs/en/pluginsomething')).toBe('uncategorized');
     expect(deriveCategory('https://code.claude.com/docs/en/hookswild')).toBe('uncategorized');
   });
+
+  it('applies full-path keys before the first-segment rule', () => {
+    expect(deriveCategory('https://code.claude.com/docs/en/plugins/create-marketplace')).toBe(
+      'plugin-marketplaces',
+    );
+    expect(deriveCategory('https://code.claude.com/docs/en/plugins/install')).toBe('plugins');
+    expect(deriveCategory('https://code.claude.com/docs/en/agent-sdk/hooks')).toBe('agent-sdk');
+  });
 });
 
 describe('parseFrontmatter - requires and related_to', () => {
@@ -290,5 +298,9 @@ describe('getUnmappedSegments', () => {
   it('agrees with deriveCategory prefix resolution', () => {
     expect(getUnmappedSegments('https://code.claude.com/docs/en/llm-gateway-connect')).toEqual([]);
     expect(getUnmappedSegments('https://code.claude.com/docs/en/mcp-quickstart')).toEqual([]);
+  });
+
+  it('agrees with deriveCategory full-path resolution', () => {
+    expect(getUnmappedSegments('https://code.claude.com/docs/en/plugins/host-marketplace')).toEqual([]);
   });
 });

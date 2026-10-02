@@ -173,6 +173,21 @@ export const SECTION_TO_CATEGORY: Record<string, string> = {
   'cross-session-messaging': 'interactive',
   'accessibility': 'interactive',
   'mobile': 'desktop',
+  'plugin-evals': 'plugins',
+  'claude-projects': 'desktop',
+};
+
+/**
+ * Maps full content paths (segments joined with '/') to their canonical category.
+ * Checked before per-segment resolution, so a nested page can leave its first
+ * segment's category. The 2026-09 plugins restructure moved the marketplace pages
+ * under 'plugins/', where the first-segment rule would send every one of them to
+ * 'plugins' and leave 'plugin-marketplaces' empty.
+ */
+export const PATH_TO_CATEGORY: Record<string, string> = {
+  'plugins/create-marketplace': 'plugin-marketplaces',
+  'plugins/host-marketplace': 'plugin-marketplaces',
+  'plugins/marketplace-reference': 'plugin-marketplaces',
 };
 
 /**
@@ -203,6 +218,28 @@ export function resolveSegmentCategory(segment: string): string | null {
     if (segment.startsWith(key + '-')) {
       return SECTION_TO_CATEGORY[key];
     }
+  }
+  return null;
+}
+
+/**
+ * Resolve a URL's content path segments to its canonical category.
+ *
+ * Resolution order:
+ * 1. Exact full-path match in PATH_TO_CATEGORY (e.g. 'plugins/create-marketplace').
+ * 2. The first segment that resolveSegmentCategory maps, so 'agent-sdk/hooks'
+ *    stays 'agent-sdk' rather than 'hooks'.
+ *
+ * Returns null when nothing matches.
+ */
+export function resolvePathCategory(segments: readonly string[]): string | null {
+  const path = segments.join('/');
+  if (Object.hasOwn(PATH_TO_CATEGORY, path)) {
+    return PATH_TO_CATEGORY[path];
+  }
+  for (const seg of segments) {
+    const category = resolveSegmentCategory(seg);
+    if (category) return category;
   }
   return null;
 }

@@ -42,7 +42,12 @@ export const GOLDEN_QUERIES: GoldenQuery[] = [
   // current page is the complete built-in/bundled command reference.
   { query: 'built-in commands bundled skills complete reference', expectedTopCategory: 'commands' },
   { query: 'plugin manifest structure install', expectedTopCategory: 'plugins' },
-  { query: 'settings hierarchy configuration', expectedTopCategory: 'settings' },
+  // "settings hierarchy configuration" drifted 2026-09: the settings page is now
+  // titled "Settings files and precedence" and never says "hierarchy", so desktop,
+  // context-window, and hooks chunks filled the top 3. "precedence" is the current
+  // settings vocabulary; "hierarchy" keeps the mock's settings heading as top-1
+  // ("files" would hand the mock's top-1 to its "Configuration files" section).
+  { query: 'settings precedence hierarchy', expectedTopCategory: 'settings' },
   { query: 'CLAUDE.md memory persistent sessions', expectedTopCategory: 'memory' },
   { query: 'CLI flags model allowedTools', expectedTopCategory: 'cli' },
   { query: 'vim mode interactive editing', expectedTopCategory: 'interactive' },
@@ -68,7 +73,10 @@ export const GOLDEN_QUERIES: GoldenQuery[] = [
   // vocabulary ("custom skills, agents, and hooks"), while the skills page's
   // create section is headed "Create your first skill" and never says "custom".
   // This wording keeps the gerund for stemming coverage and targets that page.
-  { query: 'creating your first skill', expectedTopCategory: 'skills' },
+  // Drifted again 2026-09: "Create your first plugin" (plugins/create), "Create your
+  // first eval suite" (plugin-evals), and the Agent SDK skills page now share "first".
+  // "personal skills folder" comes from the skills page's walkthrough alone.
+  { query: 'creating your first skill personal skills folder', expectedTopCategory: 'skills' },
   // Live-only queries — doc areas added upstream 2026-06/07; no mock sections exist.
   { query: 'Claude apps gateway OIDC SSO identity provider', expectedTopCategory: 'gateways', liveOnly: true },
   { query: 'connect Claude Code to LLM gateway ANTHROPIC_BASE_URL', expectedTopCategory: 'gateways', liveOnly: true },

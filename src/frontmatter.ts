@@ -1,6 +1,6 @@
 import { parse as parseYaml } from 'yaml';
 import { isHttpUrl, extractContentPath } from './url-helpers.js';
-import { resolveSegmentCategory } from './categories.js';
+import { resolvePathCategory } from './categories.js';
 
 export interface Frontmatter {
   category?: string;
@@ -177,7 +177,8 @@ export function formatMetadataHeader(fm: Frontmatter): string {
  *
  * For URLs (e.g., 'https://code.claude.com/docs/en/hooks/overview'):
  * - Extracts content path segments after /docs/{lang}/
- * - Uses SECTION_TO_CATEGORY mapping to find canonical category
+ * - Uses resolvePathCategory (PATH_TO_CATEGORY, then SECTION_TO_CATEGORY per
+ *   segment) to find the canonical category
  * - Falls back to 'uncategorized' for unmapped sections
  *
  * For file paths (e.g., 'hooks/overview.md'):
@@ -186,14 +187,9 @@ export function formatMetadataHeader(fm: Frontmatter): string {
  */
 export function deriveCategory(path: string): string {
   if (isHttpUrl(path)) {
-    const segments = extractContentPath(path);
-    for (const seg of segments) {
-      const category = resolveSegmentCategory(seg);
-      if (category) return category;
-    }
     // Default unmapped URLs to 'uncategorized' — keeps the explicit 'overview' category
     // semantically distinct from "we don't recognize this slug yet"
-    return 'uncategorized';
+    return resolvePathCategory(extractContentPath(path)) ?? 'uncategorized';
   }
 
   // Original logic for file paths
@@ -209,15 +205,14 @@ export function deriveCategory(path: string): string {
  * returns [] — unmapped leaf segments like 'input-schema' in '/hooks/input-schema'
  * are expected page slugs, not missing categories.
  *
- * Returns non-empty only when NO segment maps, meaning deriveCategory would
- * fall back to 'uncategorized'. Shares resolveSegmentCategory with deriveCategory
- * so the loader's fallback diagnostics always agree with actual chunk
- * categorization. Pure function — no side effects.
+ * Returns non-empty only when neither the full path nor any segment maps, meaning
+ * deriveCategory would fall back to 'uncategorized'. Shares resolvePathCategory
+ * with deriveCategory so the loader's fallback diagnostics always agree with
+ * actual chunk categorization. Pure function — no side effects.
  */
 export function getUnmappedSegments(sourceUrl: string): string[] {
   const segments = extractContentPath(sourceUrl);
-  const anyMapped = segments.some(seg => resolveSegmentCategory(seg) !== null);
-  if (anyMapped) return [];
+  if (resolvePathCategory(segments) !== null) return [];
   // No segment maps — URL is uncategorizable. Return all for diagnostics.
   return segments;
 }
