@@ -138,6 +138,37 @@ export function sectionToMarkdownFile(s: ParsedSection): MarkdownFile {
   };
 }
 
+/**
+ * Drop every section that repeats an earlier section exactly: same Source: URL
+ * and same content. The first copy is kept, in its original position.
+ *
+ * Upstream llms-full.txt can list a page twice (2026-11: plugins/create,
+ * plugins/install, plugins/mods/overview, each with identical text). Indexing
+ * both copies produces duplicate chunk IDs and the same chunk twice in results.
+ *
+ * Sections that share a URL but differ in content are kept: which copy is
+ * right is not knowable here, and corpus-validation.test.ts reports the
+ * resulting duplicate chunk IDs. Sections with no Source: URL (the preamble)
+ * are never dropped.
+ *
+ * Exported so the corpus tests index the cached corpus through the same
+ * selection production uses.
+ */
+export function dropRepeatedSections(sections: readonly ParsedSection[]): ParsedSection[] {
+  const seenContentByUrl = new Map<string, Set<string>>();
+  return sections.filter((s) => {
+    if (s.sourceUrl === '') return true;
+    const seenContent = seenContentByUrl.get(s.sourceUrl);
+    if (seenContent === undefined) {
+      seenContentByUrl.set(s.sourceUrl, new Set([s.content]));
+      return true;
+    }
+    if (seenContent.has(s.content)) return false;
+    seenContent.add(s.content);
+    return true;
+  });
+}
+
 export async function loadFromOfficial(
   url: string,
   cachePath?: string,
@@ -145,7 +176,9 @@ export async function loadFromOfficial(
 ): Promise<LoadResult> {
   const resolvedCachePath = resolveCachePath(cachePath);
   const { sections, contentHash, sourceKind, obtainedAt } = await fetchAndParse(url, resolvedCachePath, forceRefresh);
-  const filtered = sections.filter((s) => s.content.trim().length > 0);
+  const nonEmpty = sections.filter((s) => s.content.trim().length > 0);
+  const filtered = dropRepeatedSections(nonEmpty);
+  const repeatedSectionCount = nonEmpty.length - filtered.length;
 
   // Parse diagnostics: count only Source:-anchored sections (exclude preamble pseudo-section)
   const sourceAnchoredCount = sections.filter(s => s.sourceUrl !== '').length;
@@ -168,7 +201,8 @@ export async function loadFromOfficial(
 
   console.error(
     `Parse diagnostics: ${sourceAnchoredCount} Source: lines, ` +
-    `${filtered.length} non-empty sections`
+    `${nonEmpty.length} non-empty sections, ` +
+    `${repeatedSectionCount} repeated section(s) skipped`
   );
 
   // Report unmapped URL segments (per-load, no module-level state)
@@ -197,10 +231,12 @@ export async function loadFromOfficial(
     contentHash,
     provenance: { sourceKind, obtainedAt },
     // sectionCount = pre-filter total (includes empty preamble pseudo-sections);
-    // nonEmptySectionCount = post-filter. Canary thresholds compare against sectionCount.
+    // nonEmptySectionCount = after the empty-content filter, before repeated
+    // sections are dropped (so it can exceed files.length). Canary thresholds
+    // compare against sectionCount.
     diagnostics: {
       sourceAnchoredCount,
-      nonEmptySectionCount: filtered.length,
+      nonEmptySectionCount: nonEmpty.length,
       sectionCount: sections.length,
       fallbackSectionCount,
       fallbackSegmentCount: sortedUnmapped.length,

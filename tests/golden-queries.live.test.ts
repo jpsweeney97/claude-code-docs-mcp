@@ -22,7 +22,7 @@ import { chunkFile } from '../src/chunker.js';
 import { buildBM25Index, search } from '../src/bm25.js';
 import { parseSections } from '../src/parser.js';
 import { readCache, getDefaultCachePath } from '../src/cache.js';
-import { sectionToMarkdownFile } from '../src/loader.js';
+import { dropRepeatedSections, sectionToMarkdownFile } from '../src/loader.js';
 import { deriveCategory } from '../src/frontmatter.js';
 import { GOLDEN_QUERIES } from './golden-query-data.js';
 
@@ -55,8 +55,8 @@ describe.skipIf(!cacheExists)('golden queries (live corpus)', () => {
           `Refresh it (start the server or call reload_docs) before trusting live golden queries.`,
       );
     }
-    const sections = parseSections(cached.content).filter(
-      (s) => s.content.trim().length > 0,
+    const sections = dropRepeatedSections(
+      parseSections(cached.content).filter((s) => s.content.trim().length > 0),
     );
     sectionUrls = sections.map((s) => s.sourceUrl).filter((u) => u !== '');
     const files = sections.map(sectionToMarkdownFile);

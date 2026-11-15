@@ -884,3 +884,89 @@ describe('sectionToMarkdownFile', () => {
     );
   });
 });
+
+describe('dropRepeatedSections', () => {
+  const page = (sourceUrl: string, content: string) => ({ sourceUrl, title: 'T', content });
+
+  it('drops a section that repeats an earlier URL and content, keeping the first copy in place', async () => {
+    const { dropRepeatedSections } = await import('../src/loader.js');
+    const a = page('https://code.claude.com/docs/en/plugins/create', 'Create body');
+    const b = page('https://code.claude.com/docs/en/hooks', 'Hooks body');
+    const aAgain = page('https://code.claude.com/docs/en/plugins/create', 'Create body');
+
+    const result = dropRepeatedSections([a, b, aAgain]);
+
+    expect(result).toEqual([a, b]);
+    expect(result[0]).toBe(a);
+  });
+
+  it('keeps sections that share a URL but differ in content', async () => {
+    const { dropRepeatedSections } = await import('../src/loader.js');
+    const first = page('https://code.claude.com/docs/en/hooks', 'Version 1');
+    const second = page('https://code.claude.com/docs/en/hooks', 'Version 2');
+
+    expect(dropRepeatedSections([first, second])).toEqual([first, second]);
+  });
+
+  it('keeps sections that share content but differ in URL', async () => {
+    const { dropRepeatedSections } = await import('../src/loader.js');
+    const first = page('https://code.claude.com/docs/en/hooks', 'Same body');
+    const second = page('https://code.claude.com/docs/en/skills', 'Same body');
+
+    expect(dropRepeatedSections([first, second])).toEqual([first, second]);
+  });
+
+  it('never drops sections with no Source: URL', async () => {
+    const { dropRepeatedSections } = await import('../src/loader.js');
+    const first = page('', 'Preamble');
+    const second = page('', 'Preamble');
+
+    expect(dropRepeatedSections([first, second])).toEqual([first, second]);
+  });
+
+  it('drops every later copy when a page appears 3 times', async () => {
+    const { dropRepeatedSections } = await import('../src/loader.js');
+    const copies = [1, 2, 3].map(() => page('https://code.claude.com/docs/en/hooks', 'Body'));
+
+    expect(dropRepeatedSections(copies)).toEqual([copies[0]]);
+  });
+});
+
+describe('loadFromOfficial with a repeated page', () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'loader-repeated-'));
+    vi.resetModules();
+    vi.stubGlobal('fetch', vi.fn());
+  });
+
+  afterEach(async () => {
+    vi.unstubAllGlobals();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('indexes a page once when upstream lists it twice with identical text', async () => {
+    const repeated = {
+      title: 'Create plugins',
+      url: 'https://code.claude.com/docs/en/plugins/create',
+      body: 'Create body',
+    };
+    // 1 page + 39 padding + the same page again = 41 Source: lines
+    const content =
+      buildLargeMockContent([repeated]) +
+      `\n---\n# ${repeated.title}\nSource: ${repeated.url}\n\n${repeated.body}`;
+    vi.stubGlobal('fetch', mockFetchOk(content));
+
+    const { loadFromOfficial } = await import('../src/loader.js');
+    const cachePath = path.join(tempDir, 'cache.txt');
+    const { files, diagnostics } = await loadFromOfficial('https://example.com/docs', cachePath);
+
+    expect(files.filter((f) => f.path === repeated.url)).toHaveLength(1);
+    expect(files).toHaveLength(40);
+    // Diagnostics still count what upstream sent, repeated copy included.
+    expect(diagnostics.sourceAnchoredCount).toBe(41);
+    expect(diagnostics.sectionCount).toBe(41);
+    expect(diagnostics.nonEmptySectionCount).toBe(41);
+  });
+});

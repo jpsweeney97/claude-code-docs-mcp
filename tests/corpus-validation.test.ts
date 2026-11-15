@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { chunkFile, MAX_CHUNK_CHARS } from '../src/chunker.js';
 import { parseSections } from '../src/parser.js';
+import { dropRepeatedSections } from '../src/loader.js';
 import { readCache, getDefaultCachePath } from '../src/cache.js';
 import { existsSync } from 'fs';
 
@@ -21,9 +22,12 @@ async function loadCorpusFiles() {
   const cached = await readCache(cachePath);
   if (!cached) throw new Error(`Cache not readable at ${cachePath}`);
 
-  const sections = parseSections(cached.content);
+  // Same selection production applies in loadFromOfficial: non-empty sections,
+  // minus exact repeats of an earlier section.
+  const sections = dropRepeatedSections(
+    parseSections(cached.content).filter((s) => s.content.trim().length > 0),
+  );
   return sections
-    .filter((s) => s.content.trim().length > 0)
     .map((s) => ({
       path: s.sourceUrl || s.title || 'unknown',
       content: s.content,
