@@ -160,6 +160,13 @@ describe('SECTION_TO_CATEGORY', () => {
     expect(SECTION_TO_CATEGORY['claude-projects']).toBe('desktop');
   });
 
+  it('maps segments added with the 2026-11 corpus growth', () => {
+    expect(SECTION_TO_CATEGORY['claude-models-on-google-cloud-anthropic-managed']).toBe('providers');
+    expect(SECTION_TO_CATEGORY['hipaa-setup']).toBe('security');
+    expect(SECTION_TO_CATEGORY['auto-mode-classifier-billing']).toBe('operations');
+    expect(SECTION_TO_CATEGORY['code-mode']).toBe('cli');
+  });
+
   it('all values target a known category', () => {
     for (const [segment, category] of Object.entries(SECTION_TO_CATEGORY)) {
       expect(

@@ -175,6 +175,10 @@ export const SECTION_TO_CATEGORY: Record<string, string> = {
   'mobile': 'desktop',
   'plugin-evals': 'plugins',
   'claude-projects': 'desktop',
+  'claude-models-on-google-cloud-anthropic-managed': 'providers',
+  'hipaa-setup': 'security',
+  'auto-mode-classifier-billing': 'operations',
+  'code-mode': 'cli',
 };
 
 /**
