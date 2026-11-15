@@ -75,7 +75,7 @@ loadFromOfficial (fetch + parse docs)
 
 ### Cache Paths
 
-Both caches resolve via `getDefaultCachePath()` / `getDefaultIndexCachePath()` in `cache.ts`. Override with `CACHE_PATH` env var.
+Both caches resolve via `getDefaultCachePath()` / `getDefaultIndexCachePath()` in `cache.ts`. `CACHE_PATH` overrides the content cache file path only. The index cache always stays in the default directory. To move both caches, set `XDG_CACHE_HOME`.
 
 | Platform | Content cache | Index cache |
 |----------|--------------|-------------|
