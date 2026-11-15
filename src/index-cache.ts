@@ -208,7 +208,7 @@ const PolicyStateBlockSchema = z.object({
 const WarningSchema = z.object({
   code: z.enum(['fallback_segment_drift', 'fallback_ratio_high', 'parse_issues', 'section_count_drift']),
   severity: z.enum(['info', 'warn', 'error']),
-  details: z.record(z.unknown()),
+  details: z.record(z.string(), z.unknown()),
 });
 
 const CanaryMetricsSchema = z.object({
